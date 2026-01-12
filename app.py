@@ -1,11 +1,11 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import pickle
-import joblib 
+import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
 import os
+import plotly.graph_objects as go
 
 # ==========================================
 # 1. PAGE CONFIGURATION
@@ -39,15 +39,15 @@ if st.session_state['theme'] == 'light':
     bg_gradient = "linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%)" # Clean Grey/White
     
     # Deep Blue to Aqua (User preferred)
-    navbar_bg = "linear-gradient(90deg, #1A2980 0%, #26D0CE 100%)" 
+    navbar_bg = "linear-gradient(135deg, #1e3a8a, #22d3ee)" 
     
     text_color = "#2c3e50"
     card_bg = "rgba(255, 255, 255, 0.95)"
     card_shadow = "rgba(0,0,0,0.08)"
 else:
     bg_gradient = "linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)" # Deep Ocean
-    navbar_bg = "linear-gradient(90deg, #2C3E50 0%, #4CA1AF 100%)" # Dark Slate to Teal
-    text_color = "#e0e0e0"
+    navbar_bg = "linear-gradient(135deg, #1e3a8a, #22d3ee)" #90deg, #2C3E50 0%, #4CA1AF 100%)" # Dark Slate to Teal
+    text_color = "#e0e0e0";
     card_bg = "rgba(30, 40, 50, 0.85)"
     card_shadow = "rgba(0,0,0,0.4)"
 
@@ -90,8 +90,18 @@ st.markdown(f"""
         border-radius: 8px;
         padding: 0.5rem 1rem;
         font-weight: 500;
+        font-size: 0.95rem;
+        font-weight: 500;
         transition: all 0.3s ease;
-        width: 100%;
+        width: 180px;
+        height: 44px;
+        display: flex;
+        gap: 6px;
+        margin:auto;
+        font-color:white;
+        align-items: center;  
+        justify-content: center; 
+        transition: all 0.3s ease;
     }}
     div.stButton > button:hover {{
         filter: brightness(1.1);
@@ -220,6 +230,54 @@ st.markdown(f"""
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown(f"""
+<style>
+/* Disclaimer Card Styling - Blue Theme Matching Your App */
+.disclaimer-card {{
+    background: {card_bg};
+    color: {text_color};
+    padding: 28px;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px {card_shadow};
+    margin-bottom: 25px;
+    border-left: 6px solid #4b6cb7; 
+    animation: fadeIn 0.8s ease-out;
+}}
+
+.disclaimer-card h2 {{
+    margin-top: 0;
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #1A2980, #26D0CE);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}}
+
+.disclaimer-card p,
+.disclaimer-card li {{
+    font-size: 1rem;
+    line-height: 1.7;
+    opacity: 0.95;
+}}
+
+.disclaimer-card ul {{
+    padding-left: 20px;
+}}
+
+.disclaimer-card li {{
+    margin-bottom: 8px;
+}}
+
+/* Hover effect */
+.disclaimer-card:hover {{
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px {card_shadow};
+    transition: all 0.3s ease;
+}}
+</style>
+""", unsafe_allow_html=True)
+
+
 # ==========================================
 # 3. TOP NAVIGATION BAR
 # ==========================================
@@ -231,21 +289,19 @@ st.markdown('<p class="subtitle">Advanced Cardiovascular Risk Assessment System<
 # 2. Navbar Row (Centered)
 # We use columns to center the buttons. 
 # Layout: [Spacer] [Dash] [Pred] [Perf] [Docs] [Spacer] [Theme]
-_, c1, c2, c3, c4,c5,c6 ,_, c_theme = st.columns([1, 2, 2, 2, 2, 2 ,2, 0.5, 1])
+# _, c1, c2, c3, c4,c5 ,_, c_theme = st.columns([1, 2, 2, 2, 2 ,2, 0.5, 1])
+c1, c2, c3, c4, c5, c_theme = st.columns(6)
 
 with c1:
     if st.button("📊 Dashboard"): set_page('dashboard')
 with c2:
-    if st.button("🩺 Predict"): set_page('prediction')
+    if st.button("  🩺 Predict   "): set_page('prediction')
 with c3:
     if st.button("📈 Performance"): set_page('performance')
 with c4:
-    if st.button("📚 Docs"): set_page('docs')
+    if st.button("📖 About"): set_page('About')
 with c5:
-    if st.button("Disclaimer"):set_page('Disclaimer')
-with c6:
-    if st.button("About"):set_page('About')
-
+    if st.button("⚠️ Disclaimer"): set_page('Disclaimer')
 with c_theme:
     if st.button("🌓 Mode"):
         toggle_theme()
@@ -278,18 +334,6 @@ def load_data():
 
 df = load_data()
 
-# # Sidebar Status
-# with st.sidebar:
-#     st.markdown("### 🛠 System Status")
-#     for m in ['lr', 'scaler']:
-#         if m in models: 
-#             st.success(f"{m.upper()} Loaded")
-#         else:
-#             st.warning(f"{m.upper()} Missing")
-            
-#     if df is not None: st.success("Dataset Loaded")
-#     else: st.error("Dataset Missing")
-
 # ==========================================
 # 5. PAGE CONTENT
 # ==========================================
@@ -305,6 +349,7 @@ if st.session_state['page'] == 'dashboard':
         total = len(df)
         pos = df['cardio'].sum() if 'cardio' in df.columns else 0
         neg = total - pos
+        accuracy = 72  # percent
         avg_age = (df['age'].mean() / 365.25) if 'age' in df.columns else 0
         
         with m1:
@@ -314,7 +359,7 @@ if st.session_state['page'] == 'dashboard':
         with m3:
             st.markdown(f'<div class="card"><div class="metric-label">Negative Cases</div><div class="metric-value" style="color: #66bb6a;">{neg:,}</div></div>', unsafe_allow_html=True)
         with m4:
-            st.markdown(f'<div class="card"><div class="metric-label">Average Age</div><div class="metric-value">{avg_age:.1f}</div></div>', unsafe_allow_html=True)
+            st.markdown(f'<div class="card"><div class="metric-label">Model Accuracy</div><div class="metric-value">{accuracy:,}%</div></div>', unsafe_allow_html=True)
             
         # Charts
         c1, c2 = st.columns(2)
@@ -357,9 +402,9 @@ if st.session_state['page'] == 'dashboard':
     else:
         st.error("Dataset 'Exploring_Dataset.csv' not found. Please upload it to the project directory.")
 
+
+
 # --- PREDICTION ---
-
-
 elif st.session_state['page'] == 'prediction':
     st.markdown("<h3>🔮 Patient Health Assessment</h3>", unsafe_allow_html=True)
     st.warning("⚠️ For educational purposes only. Not for medical diagnosis.")
@@ -385,10 +430,7 @@ elif st.session_state['page'] == 'prediction':
             alco = st.selectbox("Alcohol", [0,1], format_func=lambda x: "No" if x==0 else "Yes")
             active = st.selectbox("Activity", [0,1], format_func=lambda x: "Inactive" if x==0 else "Active")
             
-            # # Calculate BMI for display
-            # # height_m = height / 100
-            # bmi = weight / (height ** 2)
-            # st.info(f"BMI: {bmi:.1f}")
+            #Calculate BMI for display
             bmi = weight / ((height / 100) ** 2)
 
         # No RF/GB Selection anymore
@@ -405,33 +447,7 @@ elif st.session_state['page'] == 'prediction':
         
         # Scale the data
         user_data_scaled = scaler.transform(user_data)
-        
-        # # Predict
-        # # prediction= model.predict(user_data_scaled)
-        # prediction = model.predict(user_data_scaled)[0]
-        # probability = model.predict_proba(user_data_scaled)[0][1]
-        
-        # # Use DataFrame to ensure feature names match exactly
-        # features = [
-        #     'age', 'gender', 'height', 'weight', 'ap_hi', 'ap_lo', 
-        #     'cholesterol', 'gluc', 'smoke', 'alco', 'active'
-        # ]
-        
-        # input_data = pd.DataFrame([[
-        #     age_days, gender, height, weight, ap_hi, ap_lo, 
-        #     chol, gluc, smoke, alco, active
-        # ]], columns=features)
-        
-        # # Scale the data
-        # if 'scaler' in models:
-        #     try:
-        #         user_data_scaled = models['scaler'].transform(input_data)
-        #     except Exception as e:
-        #         st.warning(f"Scaling failed (trying raw data): {e}")
-        #         user_data_scaled = input_data.values
-        # else:
-        #      user_data_scaled = input_data.values
-        
+                
         # Predict
         model = models.get('lr')
         if model:
@@ -511,7 +527,7 @@ elif st.session_state['page'] == 'prediction':
                             <span style='font-size: 1rem;'>Risk Probability: {probability:.1%}</span>
                         </div>
                         """, unsafe_allow_html=True)
-                        
+                       
                         st.markdown("""
                         <div class='info-box' style='border-left-color: #51cf66; margin-top: 20px;'>
                             <strong>✓ Maintenance Recommendations:</strong><br><br>
@@ -528,45 +544,45 @@ elif st.session_state['page'] == 'prediction':
                         """, unsafe_allow_html=True)
                 
                 # # Feature contribution chart
-                # st.markdown("<br>", unsafe_allow_html=True)
-                # st.markdown("### 📊 Risk Factor Contribution Analysis")
-                
-                # feature_names = ['Age', 'Gender', 'Height', 'Weight', 'Systolic BP', 'Diastolic BP', 
-                #                 'Cholesterol', 'Glucose', 'Smoking', 'Alcohol', 'Activity']
-                
-                # if hasattr(model, 'coef_'):
-                #     w = model.coef_[0]
-                #     contributions = user_data_scaled[0] * w.flatten()
+                st.markdown("<br>", unsafe_allow_html=True)
+                st.markdown("### 📊 Risk Factor Contribution Analysis")
                     
-                #     # Ensure matching length
-                #     if len(contributions) == len(feature_names):
-                #         contrib_df = pd.DataFrame({
-                #             'Feature': feature_names,
-                #             'Contribution': contributions
-                #         }).sort_values('Contribution', key=abs, ascending=False)
+                feature_names = ['Age', 'Gender', 'Height', 'Weight', 'Systolic BP', 'Diastolic BP', 
+                                'Cholesterol', 'Glucose', 'Smoking', 'Alcohol', 'Activity','BMI']
+                
+                if hasattr(model, 'coef_'):
+                    w = model.coef_[0]
+                    contributions = user_data_scaled[0] * w.flatten()
+                    
+                    # Ensure matching length
+                    if len(contributions) == len(feature_names):
+                        contrib_df = pd.DataFrame({
+                            'Feature': feature_names,
+                            'Contribution': contributions
+                        }).sort_values('Contribution', key=abs, ascending=False)
                         
-                #         fig_contrib = go.Figure()
-                #         colors = ['#dc2626' if c > 0 else '#059669' for c in contrib_df['Contribution']]
-                #         fig_contrib.add_trace(go.Bar(
-                #             y=contrib_df['Feature'],
-                #             x=contrib_df['Contribution'],
-                #             orientation='h',
-                #             marker_color=colors,
-                #             text=[f"{c:+.3f}" for c in contrib_df['Contribution']],
-                #             textposition='outside'
-                #         ))
-                #         fig_contrib.update_layout(
-                #             xaxis_title="Impact on Risk (Positive = Increases Risk)",
-                #             yaxis_title="",
-                #             paper_bgcolor='rgba(0,0,0,0)',
-                #             plot_bgcolor='rgba(0,0,0,0)',
-                #             font=dict(color='#334155'),
-                #             height=400,
-                #             showlegend=False
-                #         )
-                #         st.plotly_chart(fig_contrib, use_container_width=True)
-                #     else:
-                #         st.warning("Feature contribution count mismatch.")
+                        fig_contrib = go.Figure()
+                        colors = ['#dc2626' if c > 0 else '#059669' for c in contrib_df['Contribution']]
+                        fig_contrib.add_trace(go.Bar(
+                            y=contrib_df['Feature'],
+                            x=contrib_df['Contribution'],
+                            orientation='h',
+                            marker_color=colors,
+                            text=[f"{c:+.3f}" for c in contrib_df['Contribution']],
+                            textposition='outside'
+                        ))
+                        fig_contrib.update_layout(
+                            xaxis_title="Impact on Risk (Positive = Increases Risk)",
+                            yaxis_title="",
+                            paper_bgcolor='rgba(0,0,0,0)',
+                            plot_bgcolor='rgba(0,0,0,0)',
+                            font=dict(color='#334155'),
+                            height=400,
+                            showlegend=False
+                        )
+                        st.plotly_chart(fig_contrib, use_container_width=True)
+                    else:
+                        st.warning("Feature contribution count mismatch.")
                 st.markdown("<br>", unsafe_allow_html=True)
                 
                 st.markdown("""
@@ -879,6 +895,42 @@ elif st.session_state['page'] == 'performance':
                     st.markdown('</div>', unsafe_allow_html=True)
 
                 st.markdown("<br>", unsafe_allow_html=True)
+                # ===== METRICS CARDS =====
+                st.markdown("### 📊 Performance Metrics Across Models")
+                m1, m2, m3 = st.columns(3)
+                
+                # Logistic Regression Accuracy
+                with m1:
+                    st.markdown(f"""
+                    <div class="card" style="text-align:center; border-left-color:#1A2980;">
+                        <div class="metric-label">Logistic Regression</div>
+                        <div class="metric-value" style="color:#1A2980;">{accuracy:.1%}</div>
+                        <p style="font-size:0.75rem; opacity:0.7;">Overall Accuracy</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Random Forest Accuracy
+                rf_accuracy = 0.70
+                with m2:
+                    st.markdown(f"""
+                    <div class="card" style="text-align:center; border-left-color:#F59E0B;">
+                        <div class="metric-label">Random Forest</div>
+                        <div class="metric-value" style="color:#F59E0B;">{rf_accuracy:.1%}</div>
+                        <p style="font-size:0.75rem; opacity:0.7;">Overall Accuracy</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                # Gradient Boosting Accuracy
+                gb_accuracy = 0.73
+                with m3:
+                    st.markdown(f"""
+                    <div class="card" style="text-align:center; border-left-color:#6366F1;">
+                        <div class="metric-label">Gradient Boosting</div>
+                        <div class="metric-value" style="color:#6366F1;">{gb_accuracy:.1%}</div>
+                        <p style="font-size:0.75rem; opacity:0.7;">Overall Accuracy</p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
 
                 # ===== CLASSIFICATION REPORT =====
                 st.markdown("### 📋 Detailed Classification Report")
@@ -995,92 +1047,6 @@ elif st.session_state['page'] == 'performance':
             </div>
             """, unsafe_allow_html=True)
             
-
-#------Disclimer-----
-elif st.session_state['page'] == 'Disclaimer':
-
-    st.markdown(
-        """
-        <h1 style='text-align:center; color:#b91c1c;'>⚠️ Medical & Ethical Disclaimer</h1>
-        """,
-        unsafe_allow_html=True
-    )
-
-    st.markdown("---")
-
-    st.markdown(
-        """
-        ## 📌 Purpose of This Application
-        This application is developed **strictly for academic, learning, and demonstration purposes** 
-        as part of a **Machine Learning & Deep Learning (MLDL) project**.
-        It showcases how machine learning models can be applied to healthcare-related datasets.
-
-        The system **does NOT provide medical diagnosis, treatment, or prevention advice**.
-
-        ---
-        ## 🧠 Model & Prediction Limitations
-        - The predictions are generated using a **statistical machine learning model**
-        - The model is trained on **historical and limited datasets**
-        - Predictions may be affected by:
-          - Incomplete or incorrect user input
-          - Data bias present in the training dataset
-          - Model assumptions and simplifications
-        - The model **does not guarantee accuracy or reliability**
-
-        ---
-        ## 🩺 No Medical Advice
-        This application **must not be used** as a substitute for:
-        - Professional medical advice
-        - Clinical diagnosis
-        - Treatment planning
-        - Emergency medical services
-
-        Always consult a **licensed physician or qualified healthcare provider**
-        regarding any medical condition.
-
-        ---
-        ## ⚠️ Risk & Responsibility
-        - Users are fully responsible for how they interpret and use the results
-        - The developer, institution, and contributors **bear no liability**
-        for decisions made based on this application
-        - Any action taken based on the prediction is **solely at the user’s risk**
-
-        ---
-        ## 📊 Data Usage & Privacy
-        - User input data is **not permanently stored**
-        - No personal data is shared with third parties
-        - This application does **not perform real-time patient monitoring**
-
-        ---
-        ## ⚖️ Legal Notice
-        This software is provided **“as is” without warranty of any kind**.
-        There is **no expressed or implied guarantee** regarding:
-        - Accuracy
-        - Completeness
-        - Suitability for real-world medical use
-
-        ---
-        ## 🎓 Academic Declaration
-        This project is created as part of an **educational curriculum**
-        to demonstrate:
-        - Data preprocessing
-        - Feature engineering
-        - Model training & evaluation
-        - ML deployment using Streamlit
-
-        The application **must not be deployed in clinical or commercial environments**.
-        """
-    )
-
-    st.markdown("---")
-
-    st.warning(
-        "⚠️ By continuing to use this application, you confirm that you understand "
-        "this is an educational tool and not a medical diagnostic system."
-    )
-
-
-
 
 # --- ABOUT PAGE ---
 elif st.session_state['page'] == 'About':
@@ -1230,5 +1196,180 @@ elif st.session_state['page'] == 'About':
         </p>
     </div>
     """, unsafe_allow_html=True)
+
+
+
+# #------Disclimer-----
+# elif st.session_state['page'] == 'Disclaimer':
+
+#     st.markdown(
+#         """
+#         <h1 style='text-align:center; color:#b91c1c;'>⚠️ Medical & Ethical Disclaimer</h1>
+#         """,
+#         unsafe_allow_html=True
+#     )
+
+#     st.markdown("---")
+
+#     st.markdown(
+#         """
+#         ## 📌 Purpose of This Application
+#         This application is developed **strictly for academic, learning, and demonstration purposes** 
+#         as part of a **Machine Learning & Deep Learning (MLDL) project**.
+#         It showcases how machine learning models can be applied to healthcare-related datasets.
+
+#         The system **does NOT provide medical diagnosis, treatment, or prevention advice**.
+
+#         ---
+#         ## 🧠 Model & Prediction Limitations
+#         - The predictions are generated using a **statistical machine learning model**
+#         - The model is trained on **historical and limited datasets**
+#         - Predictions may be affected by:
+#           - Incomplete or incorrect user input
+#           - Data bias present in the training dataset
+#           - Model assumptions and simplifications
+#         - The model **does not guarantee accuracy or reliability**
+
+#         ---
+#         ## 🩺 No Medical Advice
+#         This application **must not be used** as a substitute for:
+#         - Professional medical advice
+#         - Clinical diagnosis
+#         - Treatment planning
+#         - Emergency medical services
+
+#         Always consult a **licensed physician or qualified healthcare provider**
+#         regarding any medical condition.
+
+#         ---
+#         ## ⚠️ Risk & Responsibility
+#         - Users are fully responsible for how they interpret and use the results
+#         - The developer, institution, and contributors **bear no liability**
+#         for decisions made based on this application
+#         - Any action taken based on the prediction is **solely at the user’s risk**
+
+#         ---
+#         ## 📊 Data Usage & Privacy
+#         - User input data is **not permanently stored**
+#         - No personal data is shared with third parties
+#         - This application does **not perform real-time patient monitoring**
+
+#         ---
+#         ## ⚖️ Legal Notice
+#         This software is provided **“as is” without warranty of any kind**.
+#         There is **no expressed or implied guarantee** regarding:
+#         - Accuracy
+#         - Completeness
+#         - Suitability for real-world medical use
+
+#         ---
+#         ## 🎓 Academic Declaration
+#         This project is created as part of an **educational curriculum**
+#         to demonstrate:
+#         - Data preprocessing
+#         - Feature engineering
+#         - Model training & evaluation
+#         - ML deployment using Streamlit
+
+#         The application **must not be deployed in clinical or commercial environments**.
+#         """
+#     )
+
+#     st.markdown("---")
+
+#     st.warning(
+#         "⚠️ By continuing to use this application, you confirm that you understand "
+#         "this is an educational tool and not a medical diagnostic system."
+#     )
+
+
+
+# ------ Disclaimer -----
+elif st.session_state['page'] == 'Disclaimer':
+
+    st.markdown(
+        "<h1 style='text-align:center; color:#b91c1c;'>⚠️ Medical & Ethical Disclaimer</h1>",
+        unsafe_allow_html=True
+    )
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="disclaimer-card">
+        <h2>📌 Purpose of This Application</h2>
+        <p>
+            This application is developed <strong>strictly for academic, learning, and demonstration purposes</strong>
+            as part of a <strong>Machine Learning & Deep Learning (MLDL) project</strong>.
+            It demonstrates how machine learning models can be applied to healthcare-related datasets.
+        </p>
+        <p>
+            This system <strong>does NOT provide medical diagnosis, treatment, or prevention advice</strong>.
+        </p>
+    </div>
+
+    <div class="disclaimer-card">
+        <h2>🧠 Model & Prediction Limitations</h2>
+        <ul>
+            <li>Predictions are generated using a statistical machine learning model</li>
+            <li>The model is trained on historical and limited datasets</li>
+            <li>Results may be affected by incomplete input or dataset bias</li>
+            <li>The model does <strong>not guarantee accuracy or reliability</strong></li>
+        </ul>
+    </div>
+
+    <div class="disclaimer-card">
+        <h2>🩺 No Medical Advice</h2>
+        <p>
+            This application <strong>must not be used</strong> as a substitute for professional medical advice,
+            diagnosis, treatment, or emergency healthcare services.
+        </p>
+        <p>
+            Always consult a <strong>licensed physician or qualified healthcare provider</strong>.
+        </p>
+    </div>
+
+    <div class="disclaimer-card">
+        <h2>⚠️ Risk & Responsibility</h2>
+        <ul>
+            <li>Users are fully responsible for interpreting predictions</li>
+            <li>Developers and institutions bear <strong>no liability</strong></li>
+            <li>All actions taken are at the user’s own risk</li>
+        </ul>
+    </div>
+
+    <div class="disclaimer-card">
+        <h2>📊 Data Usage & Privacy</h2>
+        <ul>
+            <li>User input is not permanently stored</li>
+            <li>No personal data is shared with third parties</li>
+            <li>No real-time patient monitoring is performed</li>
+        </ul>
+    </div>
+
+    <div class="disclaimer-card">
+        <h2>⚖️ Legal Notice</h2>
+        <p>
+            This software is provided <strong>“as is” without warranty of any kind</strong>.
+            There is no expressed or implied guarantee of accuracy or suitability
+            for real-world medical use.
+        </p>
+    </div>
+
+    <div class="disclaimer-card">
+        <h2>🎓 Academic Declaration</h2>
+        <p>
+            This project is part of an educational curriculum demonstrating data preprocessing,
+            feature engineering, model training, evaluation, and deployment using Streamlit.
+        </p>
+        <p>
+            The application <strong>must not be deployed in clinical or commercial environments</strong>.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.warning(
+        "⚠️ By continuing to use this application, you confirm that this is an educational tool "
+        "and not a medical diagnostic system."
+    )
 
     

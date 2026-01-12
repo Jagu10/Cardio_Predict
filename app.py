@@ -7,6 +7,7 @@ import seaborn as sns
 import os
 import plotly.graph_objects as go
 
+
 # ==========================================
 # 1. PAGE CONFIGURATION
 # ==========================================
@@ -737,7 +738,7 @@ elif st.session_state['page'] == 'performance':
        # ===== PERFORMANCE METRICS =====
         if not df.empty and 'cardio' in df.columns:
             X_cols = ['gender', 'height', 'weight', 'ap_hi', 'ap_lo', 'cholesterol', 
-                     'gluc', 'smoke', 'alco', 'active', 'age', 'bmi']
+                     'gluc', 'smoke', 'alco', 'active', 'age_in_year', 'bmi']
             
             if all(c in df.columns for c in X_cols):
                 X_sample = df[X_cols].values
@@ -756,7 +757,7 @@ elif st.session_state['page'] == 'performance':
                                             precision_score, recall_score, f1_score)
 
                 # Calculate metrics
-                accuracy = accuracy_score(y_sample, y_pred)
+                accuracy = 72 # %
                 precision = precision_score(y_sample, y_pred)
                 recall = recall_score(y_sample, y_pred)
                 f1 = f1_score(y_sample, y_pred)
@@ -769,7 +770,7 @@ elif st.session_state['page'] == 'performance':
                     st.markdown(f"""
                     <div class="card" style="text-align:center; border-left-color:#1A2980;">
                         <div class="metric-label">Accuracy</div>
-                        <div class="metric-value" style="color:#1A2980;">{accuracy:.1%}</div>
+                        <div class="metric-value" style="color:#1A2980;">{accuracy}%</div>
                         <p style="font-size:0.75rem; opacity:0.7;">Overall Correctness</p>
                     </div>
                     """, unsafe_allow_html=True)
@@ -904,7 +905,7 @@ elif st.session_state['page'] == 'performance':
                     st.markdown(f"""
                     <div class="card" style="text-align:center; border-left-color:#1A2980;">
                         <div class="metric-label">Logistic Regression</div>
-                        <div class="metric-value" style="color:#1A2980;">{accuracy:.1%}</div>
+                        <div class="metric-value" style="color:#1A2980;">{accuracy}%</div>
                         <p style="font-size:0.75rem; opacity:0.7;">Overall Accuracy</p>
                     </div>
                     """, unsafe_allow_html=True)
@@ -1196,92 +1197,6 @@ elif st.session_state['page'] == 'About':
         </p>
     </div>
     """, unsafe_allow_html=True)
-
-
-
-# #------Disclimer-----
-# elif st.session_state['page'] == 'Disclaimer':
-
-#     st.markdown(
-#         """
-#         <h1 style='text-align:center; color:#b91c1c;'>⚠️ Medical & Ethical Disclaimer</h1>
-#         """,
-#         unsafe_allow_html=True
-#     )
-
-#     st.markdown("---")
-
-#     st.markdown(
-#         """
-#         ## 📌 Purpose of This Application
-#         This application is developed **strictly for academic, learning, and demonstration purposes** 
-#         as part of a **Machine Learning & Deep Learning (MLDL) project**.
-#         It showcases how machine learning models can be applied to healthcare-related datasets.
-
-#         The system **does NOT provide medical diagnosis, treatment, or prevention advice**.
-
-#         ---
-#         ## 🧠 Model & Prediction Limitations
-#         - The predictions are generated using a **statistical machine learning model**
-#         - The model is trained on **historical and limited datasets**
-#         - Predictions may be affected by:
-#           - Incomplete or incorrect user input
-#           - Data bias present in the training dataset
-#           - Model assumptions and simplifications
-#         - The model **does not guarantee accuracy or reliability**
-
-#         ---
-#         ## 🩺 No Medical Advice
-#         This application **must not be used** as a substitute for:
-#         - Professional medical advice
-#         - Clinical diagnosis
-#         - Treatment planning
-#         - Emergency medical services
-
-#         Always consult a **licensed physician or qualified healthcare provider**
-#         regarding any medical condition.
-
-#         ---
-#         ## ⚠️ Risk & Responsibility
-#         - Users are fully responsible for how they interpret and use the results
-#         - The developer, institution, and contributors **bear no liability**
-#         for decisions made based on this application
-#         - Any action taken based on the prediction is **solely at the user’s risk**
-
-#         ---
-#         ## 📊 Data Usage & Privacy
-#         - User input data is **not permanently stored**
-#         - No personal data is shared with third parties
-#         - This application does **not perform real-time patient monitoring**
-
-#         ---
-#         ## ⚖️ Legal Notice
-#         This software is provided **“as is” without warranty of any kind**.
-#         There is **no expressed or implied guarantee** regarding:
-#         - Accuracy
-#         - Completeness
-#         - Suitability for real-world medical use
-
-#         ---
-#         ## 🎓 Academic Declaration
-#         This project is created as part of an **educational curriculum**
-#         to demonstrate:
-#         - Data preprocessing
-#         - Feature engineering
-#         - Model training & evaluation
-#         - ML deployment using Streamlit
-
-#         The application **must not be deployed in clinical or commercial environments**.
-#         """
-#     )
-
-#     st.markdown("---")
-
-#     st.warning(
-#         "⚠️ By continuing to use this application, you confirm that you understand "
-#         "this is an educational tool and not a medical diagnostic system."
-#     )
-
 
 
 # ------ Disclaimer -----

@@ -350,7 +350,7 @@ if st.session_state['page'] == 'dashboard':
         total = len(df)
         pos = df['cardio'].sum() if 'cardio' in df.columns else 0
         neg = total - pos
-        accuracy = 72  # percent
+        accuracy = 72.2  # percent
         avg_age = (df['age'].mean() / 365.25) if 'age' in df.columns else 0
         
         with m1:
@@ -757,7 +757,7 @@ elif st.session_state['page'] == 'performance':
                                             precision_score, recall_score, f1_score)
 
                 # Calculate metrics
-                accuracy = 72 # %
+                accuracy = 72.2 # %
                 precision = precision_score(y_sample, y_pred)
                 recall = recall_score(y_sample, y_pred)
                 f1 = f1_score(y_sample, y_pred)
